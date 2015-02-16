@@ -7,10 +7,14 @@ import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
 //for java
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+
+import opennlp.tools.namefind.NameFinderME;
+import opennlp.tools.namefind.TokenNameFinderModel;
 //for opennlp
 import opennlp.tools.postag.POSModel;
 import opennlp.tools.postag.POSTaggerME;
@@ -18,12 +22,13 @@ import opennlp.tools.tokenize.Tokenizer;
 import opennlp.tools.tokenize.TokenizerME;
 import opennlp.tools.tokenize.TokenizerModel;
 import opennlp.tools.util.InvalidFormatException;
+import opennlp.tools.util.Span;
 
 public class SolrJSearcher {
+	private static final HttpSolrServer solr = new HttpSolrServer("http://localhost:8983/solr");
 	
   public static void main(String[] args) throws SolrServerException, InvalidFormatException, IOException {
-    HttpSolrServer solr = new HttpSolrServer("http://localhost:8983/solr");
-
+    
     SolrQuery query = new SolrQuery();
     query.setQuery("*:*");
     //query.addFilterQuery("contentType:text/html");// for AMD
@@ -37,10 +42,10 @@ public class SolrJSearcher {
     QueryResponse response = solr.query(query);
     SolrDocumentList results = response.getResults();
     
-    preprocess(results);
+    tokenize(results);
     
   }
-  public static void preprocess(SolrDocumentList results) throws InvalidFormatException, IOException{
+  public static void tokenize(SolrDocumentList results) throws InvalidFormatException, IOException{
 	  for (SolrDocument doc:results) {
 		  	InputStream is = new FileInputStream("/home/anya/Documents/directResearch/en-token.bin");
 		  
@@ -49,10 +54,12 @@ public class SolrJSearcher {
 			Tokenizer tokenizer = new TokenizerME(model);
 		    System.out.println(doc.get("content").toString());
 			String tokens[] = removeStopWordsFromSentence(tokenizer.tokenize(doc.get("content").toString().replace(",", "")));
-			for(String token:tokens){
-				System.out.println(token);
-			}
 			is.close();
+			
+			Span nameSpans[] =nameFinder(tokens);// NER for locations
+			System.out.println("Found entity: " + Arrays.toString(Span.spansToStrings(nameSpans, tokens)));
+			
+			
 	    }	
   }
 
@@ -78,5 +85,13 @@ public class SolrJSearcher {
 		return (String []) newTokens.toArray (new String [newTokens.size ()]);
   } 
 
-
+  private static Span[] nameFinder(String[] tokens) throws InvalidFormatException, IOException{
+	  InputStream modelIn = new FileInputStream("/home/anya/Documents/directResearch/en-ner-location.bin");
+	  TokenNameFinderModel model = new TokenNameFinderModel(modelIn);
+	  NameFinderME nameFinder = new NameFinderME(model);
+	  Span nameSpans[] = nameFinder.find(tokens);
+	  modelIn.close();
+	  //nameFinder.clearAdaptiveData();
+	  return nameSpans;
+  }
 }
