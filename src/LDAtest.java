@@ -83,7 +83,7 @@ public class LDAtest {
 
 	public static void main(String[] args) throws Exception {
 		// read documents
-		preprocess();
+		//preprocess();
 		Reader fileReader = new InputStreamReader(new FileInputStream(new File("ner.input")), "UTF-8");
         InstanceList instances=initInstance(fileReader);
         
