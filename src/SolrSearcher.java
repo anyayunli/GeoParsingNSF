@@ -1,4 +1,4 @@
-import java.io.BufferedReader;
+/*import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
@@ -39,7 +39,7 @@ public class SolrSearcher {
 
 	    QueryResponse response = solr.query(query);
 	    SolrDocumentList results = response.getResults();*/
-		BufferedReader br = new BufferedReader(new FileReader("./testdata"));
+		/*BufferedReader br = new BufferedReader(new FileReader("./testdata"));
 		String line;
 		while ((line = br.readLine()) != null) {
 		   // process the line.
@@ -101,3 +101,4 @@ public class SolrSearcher {
 		  return nameSpans;
 	  }
 }
+*/

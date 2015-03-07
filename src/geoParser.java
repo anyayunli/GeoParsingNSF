@@ -33,6 +33,8 @@ public class geoParser extends AbstractParser {
 			ParseContext context) throws IOException, SAXException, TikaException {
 		// TODO Auto-generated method stub
 		String ners= getNER(stream);
+		geonameResolver resolver= new geonameResolver();
+		resolver.searchEngine();
 		
 	}
 
