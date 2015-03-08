@@ -3,13 +3,13 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
+import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.DoubleField;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.IntField;
 import org.apache.lucene.document.StringField;
-import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
@@ -18,7 +18,6 @@ import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
-import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.search.TopScoreDocCollector;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.RAMDirectory;
@@ -30,8 +29,8 @@ public class geonameResolver {
 	private static final Double OUT_OF_BOUNDS=999999.0;
 	//static Logger log = LoggerFactory.getLogger(geonameResolver.class);
 	//static Directory indexDir;
-	//static StandardAnalyzer analyzer;
-	
+	//static WhitespaceLowerCaseAnalyzer analyzer;
+	static Analyzer analyzer;
 	public geonameResolver(){
 		
 	}
@@ -39,7 +38,8 @@ public class geonameResolver {
 	public static void searchEngine() throws IOException{
 		//Directory indexDir = FSDirectory.open(new File("index-directory"));
 				Directory indexDir = new RAMDirectory();
-				StandardAnalyzer analyzer=new StandardAnalyzer();
+				//analyzer=new WhitespaceLowerCaseAnalyzer();
+				analyzer= new StandardAnalyzer();
 				IndexWriterConfig config = new IndexWriterConfig(analyzer);
 				IndexWriter indexWriter = new IndexWriter(indexDir, config);
 				
@@ -66,7 +66,7 @@ public class geonameResolver {
 
 		Query q = null;
 		try {
-			q = new QueryParser("fakeName", analyzer).parse(querystr);
+			q = new QueryParser("fakename", analyzer).parse(querystr);
 		} catch (org.apache.lucene.queryparser.classic.ParseException e) {
 			e.printStackTrace();
 		}
@@ -112,7 +112,7 @@ public class geonameResolver {
           longitude = OUT_OF_BOUNDS;
         }
  
-        
+        //Analyzer tmp=indexWriter.getAnalyzer();
 		Document doc = new Document();
 		doc.add(new IntField("ID", ID, Field.Store.YES));
 		doc.add(new StringField("fakeName", "test", Field.Store.YES));

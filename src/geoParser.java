@@ -32,7 +32,7 @@ public class geoParser extends AbstractParser {
 	public void parse(InputStream stream, ContentHandler handler, Metadata metadata,
 			ParseContext context) throws IOException, SAXException, TikaException {
 		// TODO Auto-generated method stub
-		String ners= getNER(stream);
+		//String ners= getNER(stream);
 		geonameResolver resolver= new geonameResolver();
 		resolver.searchEngine();
 		
