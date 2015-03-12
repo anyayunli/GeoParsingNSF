@@ -10,6 +10,7 @@ import org.apache.lucene.document.DoubleField;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.IntField;
 import org.apache.lucene.document.StringField;
+import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
@@ -62,16 +63,16 @@ public class geonameResolver {
 		        }
 		        filereader.close();
 		        indexWriter.close();
-		String querystr = "test";
+		String querystr = "park";
 
 		Query q = null;
 		try {
-			q = new QueryParser("fakename", analyzer).parse(querystr);
+			q = new QueryParser("name", analyzer).parse(querystr);
 		} catch (org.apache.lucene.queryparser.classic.ParseException e) {
 			e.printStackTrace();
 		}
 
-		int hitsPerPage = 5;
+		int hitsPerPage = 150;
 		IndexReader reader = DirectoryReader.open(indexDir);
 		IndexSearcher searcher = new IndexSearcher(reader);
 		TopScoreDocCollector collector = TopScoreDocCollector.create(hitsPerPage);
@@ -83,7 +84,7 @@ public class geonameResolver {
 		for (int i = 0; i < hits.length; ++i) {
 			int docId = hits[i].doc;
 			Document d = searcher.doc(docId);
-			System.out.println((i + 1) + ". " + d.get("ID") + "\t" + d.get("name"));
+			System.out.println((i + 1) + ". " + d.get("ID") + "\t" + d.get("name")+"\t" + d.get("longitude")+"\t" + d.get("latitude"));
 		}
 
 		// reader can only be closed when there
@@ -115,8 +116,7 @@ public class geonameResolver {
         //Analyzer tmp=indexWriter.getAnalyzer();
 		Document doc = new Document();
 		doc.add(new IntField("ID", ID, Field.Store.YES));
-		doc.add(new StringField("fakeName", "test", Field.Store.YES));
-		doc.add(new StringField("name", name, Field.Store.YES));
+		doc.add(new TextField("name", name, Field.Store.YES));
 		doc.add(new DoubleField("longitude", longitude, Field.Store.YES));
 		doc.add(new DoubleField("latitude", latitude, Field.Store.YES));
 		try {
