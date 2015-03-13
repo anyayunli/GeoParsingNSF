@@ -30,7 +30,8 @@ public class geonameResolver {
 	private static Analyzer analyzer=new StandardAnalyzer();
 	private static IndexWriter indexWriter;
 	private static Directory indexDir;
-	public void searchEngine(String querystr) throws IOException{
+	public ScoreDoc[] hits;
+	public String[] searchGeo(String querystr) throws IOException{
 				
 		//String querystr = "park";
 
@@ -41,28 +42,31 @@ public class geonameResolver {
 			e.printStackTrace();
 		}
 
-		int hitsPerPage = 5;
+		int hitsPerPage = 1;
 		IndexReader reader = DirectoryReader.open(indexDir);
 		IndexSearcher searcher = new IndexSearcher(reader);
 		TopScoreDocCollector collector = TopScoreDocCollector.create(hitsPerPage);
 		searcher.search(q, collector);
-		ScoreDoc[] hits = collector.topDocs().scoreDocs;
+		hits = collector.topDocs().scoreDocs;
 
-		// 4. display results
-		//System.out.println("Found " + hits.length + " hits.");
-		System.out.println("Resolved entity for:  " +"'" + querystr +"'");
+		String[] res= new String[hits.length];
+		//System.out.println("Resolved entity for:  " +"'" + querystr +"'");
 		for (int i = 0; i < hits.length; ++i) {
 			int docId = hits[i].doc;
 			Document d = searcher.doc(docId);
-			System.out.println((i + 1) + ". " + d.get("ID") + "\t" + d.get("name")+"\t" + d.get("longitude")+"\t" + d.get("latitude"));
+			//System.out.println((i + 1) + ". " + d.get("ID") + "\t" + d.get("name")+"\t" + d.get("longitude")+"\t" + d.get("latitude"));
+			res[i]=d.get("name") + ","+d.get("longitude") + ","+d.get("latitude");
+			//System.out.println(res[i]);
 		}
 
 		// reader can only be closed when there
 		// is no need to access the documents any more.
 		reader.close();
+		return res;
 	}
 	
-	static void buildIndex() throws IOException{
+	
+	public void buildIndex() throws IOException{
 		File indexfile= new File("indexDirectory");
 		if(!indexfile.exists()){
 			indexDir = FSDirectory.open(indexfile.toPath());

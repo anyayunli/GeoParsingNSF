@@ -18,7 +18,15 @@ public class geoParserTest{
 		ContentHandler handler= new BodyContentHandler();
 		Metadata metadata= new Metadata();
 		geoparser.parse(in, handler, metadata, new ParseContext());
-		System.out.println(handler.toString());
+		//System.out.println(handler.toString());
+		for (String name : metadata.names()) {
+			 String value = metadata.get(name);
+			  
+			 if (value != null) {
+				 System.out.println("Metadata Name: " + name);
+				 System.out.println("Metadata Value: " + value);
+			 }
+		} 
 		in.close();
 	}
 }

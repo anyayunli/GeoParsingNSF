@@ -2,6 +2,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Set;
 
 import opennlp.tools.namefind.NameFinderME;
@@ -10,6 +11,7 @@ import opennlp.tools.util.InvalidFormatException;
 import opennlp.tools.util.Span;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.lucene.search.ScoreDoc;
 import org.apache.tika.exception.TikaException;
 import org.apache.tika.metadata.Metadata;
 import org.apache.tika.mime.MediaType;
@@ -35,12 +37,32 @@ public class geoParser extends AbstractParser {
 		String[] ners= getNER(stream);
 		geonameResolver resolver= new geonameResolver();
 		resolver.buildIndex();
+		
+		HashMap<String, String[]> geonames= new HashMap<String, String[]>();
+		
 		for(int i=0; i<ners.length; ++i){
 			if(ners[i]==null || ners[i].length()==0 || ners[i].equals("\t")) continue;
+			if(geonames.containsKey(ners[i])) continue;
 			System.out.println("Entity found in texts: " +ners[i]);
-			resolver.searchEngine(ners[i]);
-			System.out.println("------------------------------------------------------------------------------- ");
+			geonames.put(ners[i], resolver.searchGeo(ners[i]));
+			System.out.println("------------------------------------------------------------------------------- ");			
 		}
+		
+		// currently set best geo to the first identified ner
+		int bestneridx=0, bestgeoidx=0;
+		String[] bestNerRes= geonames.get(ners[bestneridx]);
+		String[] bestGeo=bestNerRes[bestgeoidx].split(",");
+		metadata.add("BestGeo.name", bestGeo[0]);
+		metadata.add("BestGeo.longitude", bestGeo[1]);
+		metadata.add("BestGeo.latitude", bestGeo[2]);
+		
+		/*for( ){
+			if(i==bestneridx) continue;
+			tmp= geonames[i][bestgeoidx].split(",");
+			metadata.add("OptionGeo.name"+i, tmp[0]);
+			metadata.add("OptionGeo.longitude"+i, tmp[1]);
+			metadata.add("OptionGeo.latitude"+i, tmp[2]);
+		}*/
 		
 	}
 
