@@ -44,12 +44,14 @@ import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 
 public class GeoNameResolver {
-	private static final String PATH2GEONAMEDATA="allCountries.txt";
+	private static final String INDEXDIR_PATH="src/main/java/org/apache/tika/parser/geo/topic/model/indexDirectory";
 	private static final Double OUT_OF_BOUNDS=999999.0;
 	private static Analyzer analyzer=new StandardAnalyzer();
 	private static IndexWriter indexWriter;
 	private static Directory indexDir;
 	public ScoreDoc[] hits;
+	
+	
 	public String[] searchGeo(String querystr) throws IOException{
 				
 		//String querystr = "park";
@@ -85,8 +87,8 @@ public class GeoNameResolver {
 	}
 	
 	
-	public void buildIndex() throws IOException{
-		File indexfile= new File("indexDirectory");
+	public void buildIndex(String GAZETTEER_PATH) throws IOException{
+		File indexfile= new File(INDEXDIR_PATH);
 		if(!indexfile.exists()){
 			indexDir = FSDirectory.open(indexfile.toPath());
 			//Directory indexDir = new RAMDirectory();
@@ -95,7 +97,7 @@ public class GeoNameResolver {
 			IndexWriterConfig config = new IndexWriterConfig(analyzer);
 			indexWriter = new IndexWriter(indexDir, config);
 		
-			BufferedReader filereader = new BufferedReader(new InputStreamReader(new FileInputStream(PATH2GEONAMEDATA), "UTF-8"));
+			BufferedReader filereader = new BufferedReader(new InputStreamReader(new FileInputStream(GAZETTEER_PATH), "UTF-8"));
 			String line;
 			int count=0;
 			while ((line = filereader.readLine()) != null) {

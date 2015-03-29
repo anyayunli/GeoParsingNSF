@@ -1,8 +1,8 @@
 *~
-./bin/*
+*/bin/*
 *.class
-.DS_Store
-.project
-.classpath
-./indexDirectory
-./geoParser/target
+*.DS_Store
+*.project
+*.classpath
+*/indexDirectory/*
+*/target/*

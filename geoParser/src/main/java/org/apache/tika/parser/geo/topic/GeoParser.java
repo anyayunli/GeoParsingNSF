@@ -43,20 +43,25 @@ public class GeoParser extends AbstractParser {
 	//private static final MediaType MEDIA_TYPE = MediaType.application("geoTopic");
 	//private static final Set<MediaType> SUPPORTED_TYPES =Collections.singleton(MEDIA_TYPE);
 
+	private static String NER_MODEL_PATH="src/main/java/org/apache/tika/parser/geo/topic/model/en-ner-location.bin";
+	private static String GAZETTEER_PATH="";
 	@Override
 	public Set<MediaType> getSupportedTypes(ParseContext arg0) {
 		// TODO Auto-generated method stub
 		//return SUPPORTED_TYPES;
 		return null;
 	}
-
+	public void init(String gazetteerPath, String nerPath){
+		NER_MODEL_PATH=nerPath;
+		GAZETTEER_PATH=gazetteerPath;
+	}
 	@Override
 	public void parse(InputStream stream, ContentHandler handler, Metadata metadata,
 			ParseContext context) throws IOException, SAXException, TikaException {
 		// TODO Auto-generated method stub
 		String[] ners= getNER(stream);
 		GeoNameResolver resolver= new GeoNameResolver();
-		resolver.buildIndex();
+		resolver.buildIndex(GAZETTEER_PATH);
 		
 		HashMap<String, String[]> geonames= new HashMap<String, String[]>();
 		
@@ -87,8 +92,9 @@ public class GeoParser extends AbstractParser {
 	}
 
 	public static String[] getNER(InputStream stream) throws InvalidFormatException, IOException{
-
-		  InputStream modelIn = new FileInputStream("./models/en-ner-location.bin");
+		  //ParseContext context= new ParseContext();
+		  //context.set(key, value)
+		  InputStream modelIn = new FileInputStream(NER_MODEL_PATH);
 		  TokenNameFinderModel model = new TokenNameFinderModel(modelIn);
 		  NameFinderME nameFinder = new NameFinderME(model);
 		  String[] in=IOUtils.toString(stream, "UTF-8").split(" ");
