@@ -17,7 +17,7 @@ This project is a content-based geotagging solution, made of a variaty of NLP to
 4. location extracted above, search the best GeoName object and return the resloved objects in ranking order
 
 ##How to Use
-```
+```Java
 	function A(stream){
 		Metadata metadata = new Metadata();
         ParseContext context=new ParseContext();
@@ -46,18 +46,13 @@ For general use, we provide pre-trained NER models, which could be downloaded th
 
 You can also train a specifc model for a specific dataset, in this case, I suggest you follow the instructions [here](http://opennlp.apache.org/documentation/1.5.3/manual/opennlp.html#tools.namefind.training)
 
-Once you have you customized training model, suppose you put it under **/home/*/Documents/, you need to set the path when using this parser like following:
+Once you have you customized training model, suppose you put it under _/home/*/Documents/_, you need to set the path when using this parser like following:
 
-```
+```java
 		GeoParserConfig config= new GeoParserConfig();
-        config.setNERPath("/home/*/Documents/allCountries.txt");
+        config.setNERPath("/home/*/Documents/customized_model");
         context.set(GeoParserConfig.class, config);
                
-        geoparser.parse(
-                stream,
-                new BodyContentHandler(),
-                metadata,
-                context);
  ```
 
 ##### GeoName
@@ -69,17 +64,11 @@ What we need here is to download the latest version of allCountries.zip file fro
 and unzip the GeoNames file:
 > `unzip allCountries.zip`
 
-and put ** allCountries.txt in a directory, suppose under **/home/*/Documents/, and you need to set the path when using this parser like following:
- ```
+and put  _allCountries.txt_ in a directory, suppose under _/home/*/Documents/_, and you need to set the path when using this parser like following:
+ ```java
 		GeoParserConfig config= new GeoParserConfig();
         config.setGazetterPath("/home/*/Documents/allCountries.txt");
         context.set(GeoParserConfig.class, config);
-              
-        geoparser.parse(
-                stream,
-                new BodyContentHandler(),
-                metadata,
-                context);
  ```
 
 You can also replace allCountries.zip by any specific geographical names that in the same format. In this case, you need to make sure that:
