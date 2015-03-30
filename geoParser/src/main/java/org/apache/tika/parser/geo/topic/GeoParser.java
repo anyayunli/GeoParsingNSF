@@ -90,9 +90,9 @@ public class GeoParser extends AbstractParser {
 		metadata.add("Geographic_LATITUDE", geotag.Geographic_LATITUDE);
 		for(int i=0; i<geotag.alternatives.size(); ++i){
 			GeoTag alter= geotag.alternatives.get(i);
-			metadata.add("ALTER_NAME"+(i+1), alter.Geographic_NAME);
-			metadata.add("ALTER_LONGITUDE"+(i+1), alter.Geographic_LONGTITUDE);
-			metadata.add("ALTER_LATITUDE"+(i+1), alter.Geographic_LATITUDE);
+			metadata.add("Optional_NAME"+(i+1), alter.Geographic_NAME);
+			metadata.add("Optional_LONGITUDE"+(i+1), alter.Geographic_LONGTITUDE);
+			metadata.add("Optional_LATITUDE"+(i+1), alter.Geographic_LATITUDE);
 		}
 	}
 	
