@@ -16,22 +16,39 @@
  */
 
 package org.apache.tika.parser.geo.topic;
-import java.util.ArrayList;
 
+import java.io.File;
+import java.io.Serializable;
 
-public class GeoTag {
-	String Geographic_NAME;
-	String Geographic_LONGTITUDE;
-	String Geographic_LATITUDE;
-	ArrayList<GeoTag> alternatives= new ArrayList<GeoTag>();
-	
-	public void setMain(String name, String longitude, String latitude){
-		Geographic_NAME= name;
-		Geographic_LONGTITUDE=longitude;
-		Geographic_LATITUDE=latitude;	
+public class GeoParserConfig implements Serializable{
+	private String gazetteerPath="";
+	private String nerModelPath="src/main/java/org/apache/tika/parser/geo/topic/model/en-ner-location.bin";
+	public void setGazetterPath(String path){
+		if(path==null) return;
+		File file= new File(path);
+		if(file.isDirectory() || !file.exists()){
+			//System.out.println("Invalid Gazetteer Path");
+			return;
+		}
+		
+		gazetteerPath=path;
+			
 	}
-	public void addAlternative(GeoTag geotag){
-		alternatives.add(geotag);
+	
+	public void setNERModelPath(String path){
+		if(path==null) return;
+		File file= new File(path);
+		if(file.isDirectory() || !file.exists()){
+			//System.out.println("Invalid NER Model Path");
+			return;
+		}
+		nerModelPath=path;
+	}
+	
+	public String getNERPath(){
+		return nerModelPath;
+	}
+	public String getGazetterPath(){
+		return gazetteerPath;
 	}
 }
-

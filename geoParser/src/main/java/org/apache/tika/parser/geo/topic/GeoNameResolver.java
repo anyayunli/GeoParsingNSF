@@ -22,6 +22,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.logging.*;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
@@ -40,8 +41,11 @@ import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TopScoreDocCollector;
 import org.apache.lucene.store.Directory;
-
 import org.apache.lucene.store.FSDirectory;
+
+//import org.apache.lucene.store.*;
+
+import sun.util.logging.resources.logging;
 
 public class GeoNameResolver {
 	private static final String INDEXDIR_PATH="src/main/java/org/apache/tika/parser/geo/topic/model/indexDirectory";
@@ -52,10 +56,8 @@ public class GeoNameResolver {
 	public ScoreDoc[] hits;
 	
 	
-	public String[] searchGeo(String querystr) throws IOException{
-				
-		//String querystr = "park";
-
+	public String[] searchGeoName(String querystr) throws IOException{
+		Logger logger= Logger.getLogger(this.getClass().getName());
 		Query q = null;
 		try {
 			q = new QueryParser("name", analyzer).parse(querystr);
@@ -63,25 +65,28 @@ public class GeoNameResolver {
 			e.printStackTrace();
 		}
 
+		if(!DirectoryReader.indexExists(indexDir)){
+			logger.log(Level.SEVERE, "No Lucene Index Dierctory Found, Invoke indexBuild() First !");
+			System.exit(1);
+		}
+		
+		IndexReader reader= DirectoryReader.open(indexDir);
+		
 		int hitsPerPage = 1;
-		IndexReader reader = DirectoryReader.open(indexDir);
 		IndexSearcher searcher = new IndexSearcher(reader);
 		TopScoreDocCollector collector = TopScoreDocCollector.create(hitsPerPage);
 		searcher.search(q, collector);
 		hits = collector.topDocs().scoreDocs;
 
 		String[] res= new String[hits.length];
-		//System.out.println("Resolved entity for:  " +"'" + querystr +"'");
 		for (int i = 0; i < hits.length; ++i) {
 			int docId = hits[i].doc;
 			Document d = searcher.doc(docId);
-			//System.out.println((i + 1) + ". " + d.get("ID") + "\t" + d.get("name")+"\t" + d.get("longitude")+"\t" + d.get("latitude"));
-			res[i]=d.get("name") + ","+d.get("longitude") + ","+d.get("latitude");
-			//System.out.println(res[i]);
+			logger.log(Level.INFO, "Resolved GeoName for Entity: "+  d.get("name")+"\t " + d.get("longitude")+"\t" + d.get("latitude"));
+			res[i]=d.get("name") + ","+d.get("longitude") + ","+d.get("latitude");			
 		}
 
-		// reader can only be closed when there
-		// is no need to access the documents any more.
+		// reader can only be closed when there is no need to access the documents any more.
 		reader.close();
 		return res;
 	}
@@ -89,14 +94,12 @@ public class GeoNameResolver {
 	
 	public void buildIndex(String GAZETTEER_PATH) throws IOException{
 		File indexfile= new File(INDEXDIR_PATH);
-		if(!indexfile.exists()){
-			indexDir = FSDirectory.open(indexfile.toPath());
-			//Directory indexDir = new RAMDirectory();
-		
-			//analyzer= new StandardAnalyzer();
+		indexDir = FSDirectory.open(indexfile.toPath());	
+		if(!DirectoryReader.indexExists(indexDir)){
 			IndexWriterConfig config = new IndexWriterConfig(analyzer);
 			indexWriter = new IndexWriter(indexDir, config);
-		
+			Logger logger= Logger.getLogger(this.getClass().getName());
+			logger.log(Level.WARNING, "Start Building Index for Gazatteer");
 			BufferedReader filereader = new BufferedReader(new InputStreamReader(new FileInputStream(GAZETTEER_PATH), "UTF-8"));
 			String line;
 			int count=0;
@@ -104,18 +107,17 @@ public class GeoNameResolver {
 				try {
 					count += 1;
 					if (count % 100000 == 0 ) {
-						//log.info("rowcount: " + count);
+						logger.log(Level.INFO, "rowcount: " + count);
 					}
 					addDoc(indexWriter, line);
                 
 				} catch (RuntimeException re) {
-					//log.info("Skipping... Error on line: {}", line);
+					logger.log(Level.WARNING, "Skipping... Error on line: {}" , line);
 				}
 			}
+			logger.log(Level.WARNING, "Building Finished");
 			filereader.close();
 			indexWriter.close();
-		}else{
-			indexDir = FSDirectory.open(indexfile.toPath());
 		}
 	}
 	private static void addDoc(IndexWriter indexWriter, final String line){

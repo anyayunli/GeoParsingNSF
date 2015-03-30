@@ -6,3 +6,7 @@
 *.classpath
 */indexDirectory/*
 */target/*
+geoParser/src/main/java/org/apache/tika/parser/geo/topic/model/indexDirectory/
+geoParser/src/main/java/org/apache/tika/parser/geo/topic/model/allCountries.txt
+
+

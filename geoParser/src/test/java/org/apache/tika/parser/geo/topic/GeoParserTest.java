@@ -21,8 +21,9 @@ package org.apache.tika.parser.geo.topic;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;*/
+import static org.junit.Assert.*;
+
 import org.junit.Test;
-import junit.framework.*;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -36,6 +37,9 @@ import org.xml.sax.SAXException;
 
 public class GeoParserTest {
 
+	 final String gazetteer="src/main/java/org/apache/tika/parser/geo/topic/model/allCountries.txt";
+     final String nerPath="src/main/java/org/apache/tika/parser/geo/topic/model/en-ner-location.bin";
+     
 	private Parser geoparser = new GeoParser();
 	@Test
 	public void testFunctions() throws UnsupportedEncodingException, IOException, SAXException, TikaException{
@@ -50,16 +54,63 @@ public class GeoParserTest {
 	
         Metadata metadata = new Metadata();
         ParseContext context=new ParseContext();
-        final String gazetteer="src/main/java/org/apache/tika/parser/geo/topic/model/allCountries.txt";
-        final String nerPath="src/main/java/org/apache/tika/parser/geo/topic/model/en-ner-location.bin";
-        new GeoParser().init(gazetteer, nerPath);
+        GeoParserConfig config= new GeoParserConfig();
+        config.setGazetterPath(gazetteer);
+        config.setNERModelPath(nerPath);
+        context.set(GeoParserConfig.class, config);
+               
         geoparser.parse(
                 new ByteArrayInputStream(text.getBytes("ISO-8859-1")),
                 new BodyContentHandler(),
                 metadata,
                 context);
-        Assert.assertNull(metadata.get(metadata.get("Geographic_NAME")));
-        Assert.assertNull(metadata.get(metadata.get("Geographic_LONGITUDE")));
-        Assert.assertNull(metadata.get(metadata.get("Geographic_LATITUDE")));
-	}	
+
+       assertNotNull(metadata.get("Geographic_NAME"));
+       assertNotNull(metadata.get("Geographic_LONGITUDE"));
+       assertNotNull(metadata.get("Geographic_LATITUDE"));
+        
+	}
+	
+	@Test
+	public void testNulls() throws UnsupportedEncodingException, IOException, SAXException, TikaException{
+		String text ="";
+	
+        Metadata metadata = new Metadata();
+        ParseContext context=new ParseContext();
+        GeoParserConfig config= new GeoParserConfig();
+        config.setGazetterPath(gazetteer);
+        config.setNERModelPath(nerPath);
+        context.set(GeoParserConfig.class, config);
+               
+        geoparser.parse(
+                new ByteArrayInputStream(text.getBytes("ISO-8859-1")),
+                new BodyContentHandler(),
+                metadata,
+                context);
+        assertNull(metadata.get("Geographic_NAME"));
+        assertNull(metadata.get("Geographic_LONGITUDE"));
+        assertNull(metadata.get("Geographic_LATITUDE"));
+        
+	}
+	
+	@Test
+	public void testConfig() throws UnsupportedEncodingException, IOException, SAXException, TikaException{
+		
+        GeoParserConfig config= new GeoParserConfig();
+        
+        config.setGazetterPath(gazetteer);
+        config.setNERModelPath(nerPath);              
+        assertEquals(config.getGazetterPath(), gazetteer);
+        assertEquals(config.getNERPath(), nerPath);
+        
+        config= new GeoParserConfig();
+        config.setNERModelPath(null);             
+        assertEquals(config.getNERPath(), nerPath);
+        
+        config= new GeoParserConfig();
+        config.setGazetterPath("/:");
+        config.setNERModelPath("/:");              
+        assertEquals(config.getGazetterPath(), "");
+        assertEquals(config.getNERPath(), nerPath);
+	}
 }
