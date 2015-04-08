@@ -69,11 +69,11 @@ public class GeoParserTest {
        assertNotNull(metadata.get("Geographic_LONGITUDE"));
        assertNotNull(metadata.get("Geographic_LATITUDE"));
        
-       for(String name: metadata.names()){
+       /*for(String name: metadata.names()){
     	   String value=metadata.get(name);
     	   System.out.println(name +" " + value);
     	   
-       }
+       }*/
         
 	}
 	

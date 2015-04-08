@@ -50,24 +50,28 @@ public class GeoParser extends AbstractParser {
 	private static String nerModelPath="src/main/java/org/apache/tika/parser/geo/topic/model/en-ner-location.bin";
 	private static String gazetteerPath="";
 	private GeoParserConfig defaultconfig= new GeoParserConfig();
-	@Override
+	
 	public Set<MediaType> getSupportedTypes(ParseContext arg0) {
 		// TODO Auto-generated method stub
 		//return SUPPORTED_TYPES;
 		return null;
 	}
 	
-	@Override
 	public void parse(InputStream stream, ContentHandler handler, Metadata metadata,
 			ParseContext context) throws IOException, SAXException, TikaException {
-		/*----------------initialize this parser's config by ParseContext Object---------------------*/
+		
+		/*----------------configure this parser by ParseContext Object---------------------*/
+		
 		Logger logger= Logger.getLogger(this.getClass().getName());
 		GeoParserConfig localconfig= context.get(GeoParserConfig.class, defaultconfig);
 		nerModelPath= localconfig.getNERPath();
 		gazetteerPath=localconfig.getGazetterPath();
 		
-		/*----------------get NERs for input stream---------------------*/
+		/*----------------get NERs for the input stream---------------------*/
 		String[] ners= getNER(stream);
+		/*----------------get best NER for input stream---------------------*/
+		String bestner= getBestNER(ners);
+		
 		/*----------------build lucene search engine for the gazetteer file---------------------*/
 		GeoNameResolver resolver= new GeoNameResolver();
 		resolver.buildIndex(gazetteerPath);
@@ -78,28 +82,58 @@ public class GeoParser extends AbstractParser {
 		for(int i=0; i<ners.length; ++i){
 			if(ners[i]==null || ners[i].length()==0 || ners[i].equals("\t")) continue;
 			if(geonames.containsKey(ners[i])) continue;
-			logger.log(Level.INFO, "Entity Found in Texts: " +ners[i]);
+			//logger.log(Level.INFO, "Entity Found in Texts: " +ners[i]);
 			geonames.put(ners[i], resolver.searchGeoName(ners[i]));
-		}
-		/*----------------get best NER for input stream---------------------*/
-		String bestner= getBestNER(ners);
+		}	
+		
 		/*----------------store ners and their geonames in a geotag, each input has one geotag---------------------*/
-		GeoTag geotag= getGeoTag(geonames, bestner);// get the geotag results for this text
+		GeoTag geotag= getGeoTag(geonames, bestner);
+		
+		/* add resolved entities in metadata */
 		metadata.add("Geographic_NAME", geotag.Geographic_NAME);
 		metadata.add("Geographic_LONGITUDE", geotag.Geographic_LONGTITUDE);
 		metadata.add("Geographic_LATITUDE", geotag.Geographic_LATITUDE);
 		for(int i=0; i<geotag.alternatives.size(); ++i){
-			GeoTag alter= geotag.alternatives.get(i);
+			GeoTag alter= (GeoTag) geotag.alternatives.get(i);
 			metadata.add("Optional_NAME"+(i+1), alter.Geographic_NAME);
 			metadata.add("Optional_LONGITUDE"+(i+1), alter.Geographic_LONGTITUDE);
 			metadata.add("Optional_LATITUDE"+(i+1), alter.Geographic_LATITUDE);
 		}
 	}
 	
+	/*
+	* Get the best location entity extracted from the input stream. 
+	* Simply return the most frequent entity, may not be the optimal solution, but works.
+	*
+	* @param ners   OpenNLP name finder's results, stored in array
+	*/
 	public String getBestNER(String[] ners){
-		return ners[0];
+		if(ners.length==0)
+			return "";
+		HashMap<String, Integer> tf= new HashMap<String, Integer> ();
+		for(int i=0; i< ners.length; ++i){
+			if(tf.containsKey(ners[i]))
+				tf.put(ners[i], tf.get(ners[i])+1);
+			else
+				tf.put(ners[i], 1);
+		}
+		
+		String res="";
+		int max=0;
+		for(String term: tf.keySet()){
+			if(tf.get(term) > max){
+				max= tf.get(term);
+				res= term;
+			}				
+		}
+		return res;
 	}
-	
+	/*
+	* Store resolved geoName entities in a GeoTag
+	* 
+	* @param resolvers  resolved entities
+	* @param bestNER  best name entity among all the extracted entities for the input stream
+	*/
 	public GeoTag getGeoTag(HashMap<String, String[]> resolvers, String bestNER){
 		GeoTag geotag= new GeoTag();
 		int bestneridx=0, bestgeoidx=0;
@@ -120,10 +154,13 @@ public class GeoParser extends AbstractParser {
 		}
 		return geotag;
 	}
-
+	/*
+	* Use OpenNLP to extract location names that's appearing in the steam
+	*
+	* @param stream  stream that passed from this.parse()
+	*/
 	public static String[] getNER(InputStream stream) throws InvalidFormatException, IOException{
-		  //ParseContext context= new ParseContext();
-		  //context.set(key, value)
+		  
 		  InputStream modelIn = new FileInputStream(nerModelPath);
 		  TokenNameFinderModel model = new TokenNameFinderModel(modelIn);
 		  NameFinderME nameFinder = new NameFinderME(model);

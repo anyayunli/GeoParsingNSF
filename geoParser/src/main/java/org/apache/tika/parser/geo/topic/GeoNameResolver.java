@@ -55,7 +55,13 @@ public class GeoNameResolver {
 	private static Directory indexDir;
 	public ScoreDoc[] hits;
 	
-	
+	/*
+	* Search corresponding GeoName for each location entity
+	* 
+	* @param querystr    it's the NER actually
+	* @throws IOException
+	* @throws RuntimeException
+	*/
 	public String[] searchGeoName(String querystr) throws IOException{
 		Logger logger= Logger.getLogger(this.getClass().getName());
 		Query q = null;
@@ -82,7 +88,7 @@ public class GeoNameResolver {
 		for (int i = 0; i < hits.length; ++i) {
 			int docId = hits[i].doc;
 			Document d = searcher.doc(docId);
-			logger.log(Level.INFO, "Resolved GeoName for Entity: "+  d.get("name")+"\t " + d.get("longitude")+"\t" + d.get("latitude"));
+			//logger.log(Level.INFO, "Resolved GeoName for Entity: "+  d.get("name")+"\t " + d.get("longitude")+"\t" + d.get("latitude"));
 			res[i]=d.get("name") + ","+d.get("longitude") + ","+d.get("latitude");			
 		}
 
@@ -91,7 +97,13 @@ public class GeoNameResolver {
 		return res;
 	}
 	
-	
+	/*
+	* Build the gazetteer index line by line
+	* 
+	* @param GAZETTEER_PATH   path of the gazetter file
+	* @throws IOException
+	* @throws RuntimeException
+	*/
 	public void buildIndex(String GAZETTEER_PATH) throws IOException{
 		File indexfile= new File(INDEXDIR_PATH);
 		indexDir = FSDirectory.open(indexfile.toPath());	
@@ -120,13 +132,19 @@ public class GeoNameResolver {
 			indexWriter.close();
 		}
 	}
+	/*
+	* Index gazetteer's one line data by built-in Lucene Index functions
+	* @param indexWriter Lucene indexWriter to be loaded
+	* @param line  a line from the gazetteer file
+	* @throws IOException
+	* @throws NumberFormatException
+	*/
 	private static void addDoc(IndexWriter indexWriter, final String line){
 		String[] tokens = line.split("\t");
 		
-        // initialize each field with the corresponding token
         int ID = Integer.parseInt(tokens[0]);
         String name = tokens[1];
-        //String asciiName = tokens[2];
+        
         Double latitude=-999999.0;
         try {
            latitude = Double.parseDouble(tokens[4]);
@@ -140,7 +158,7 @@ public class GeoNameResolver {
           longitude = OUT_OF_BOUNDS;
         }
  
-        //Analyzer tmp=indexWriter.getAnalyzer();
+        
 		Document doc = new Document();
 		doc.add(new IntField("ID", ID, Field.Store.YES));
 		doc.add(new TextField("name", name, Field.Store.YES));
@@ -149,7 +167,6 @@ public class GeoNameResolver {
 		try {
 			indexWriter.addDocument(doc);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		

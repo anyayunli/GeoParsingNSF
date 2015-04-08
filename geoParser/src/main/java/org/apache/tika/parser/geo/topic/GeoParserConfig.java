@@ -21,13 +21,16 @@ import java.io.File;
 import java.io.Serializable;
 
 public class GeoParserConfig implements Serializable{
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	private String gazetteerPath="";
 	private String nerModelPath="src/main/java/org/apache/tika/parser/geo/topic/model/en-ner-location.bin";
 	public void setGazetterPath(String path){
 		if(path==null) return;
 		File file= new File(path);
 		if(file.isDirectory() || !file.exists()){
-			//System.out.println("Invalid Gazetteer Path");
 			return;
 		}
 		
@@ -39,7 +42,6 @@ public class GeoParserConfig implements Serializable{
 		if(path==null) return;
 		File file= new File(path);
 		if(file.isDirectory() || !file.exists()){
-			//System.out.println("Invalid NER Model Path");
 			return;
 		}
 		nerModelPath=path;

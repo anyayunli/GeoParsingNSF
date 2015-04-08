@@ -33,5 +33,6 @@ public class GeoTag {
 	public void addAlternative(GeoTag geotag){
 		alternatives.add(geotag);
 	}
+	
 }
 
