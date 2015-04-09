@@ -60,17 +60,17 @@ public class GeoNameResolver {
 	
 	/**
 	* Search corresponding GeoName for each location entity
-	 * @param resolvedGeonames 
-	* 
-	* @param querystr    it's the NER actually
+	 * @param querystr    it's the NER actually
+	 * @return 
 	* @throws IOException
 	* @throws RuntimeException
 	*/
-	public void searchGeoName(ArrayList<String> locationNameEntities,
-				HashMap<String, ArrayList<String>> resolvedGeonames) throws IOException {
+	
+	public HashMap<String, ArrayList<String>> searchGeoName(
+			ArrayList<String> locationNameEntities) throws IOException {
 		
 		if(locationNameEntities.size()==0 || locationNameEntities.get(0).length()==0)
-			return;
+			return new HashMap<String, ArrayList<String>>();
 		
 		Logger logger= Logger.getLogger(this.getClass().getName());
 		
@@ -85,7 +85,7 @@ public class GeoNameResolver {
 		if(locationNameEntities.size() >= 20)
 			hitsPerPage = 1; // avoid heavy computation
 		IndexSearcher searcher = new IndexSearcher(reader);
-		TopScoreDocCollector collector = TopScoreDocCollector.create(hitsPerPage);
+		
 		Query q = null;
 		
 		HashMap<String, ArrayList<ArrayList<String>>> allCandidates= 
@@ -96,6 +96,7 @@ public class GeoNameResolver {
 				continue;
 			try {
 				q = new QueryParser("name", analyzer).parse(name);
+				TopScoreDocCollector collector = TopScoreDocCollector.create(hitsPerPage);
 				searcher.search(q, collector);
 				ScoreDoc[] hits = collector.topDocs().scoreDocs;
 				ArrayList<ArrayList<String>> topHits= new ArrayList<ArrayList<String>>();
@@ -123,17 +124,17 @@ public class GeoNameResolver {
 		
 		HashMap<String, ArrayList<String>> resolvedEntities= new HashMap<String, ArrayList<String>>();		
 		pickBestCandidates(resolvedEntities, allCandidates);
-		
 		reader.close();
+		
+		return resolvedEntities;
 		
 	}
 	
 	/**
 	* Select the best match for each location name extracted from a document, 
 	* choosing from among a list of lists of candidate matches.
-	 * @param resolvedEntities 
-	* 
-	* @param GAZETTEER_PATH   path of the gazetter file
+	* @param resolvedEntities  final result for the input stream
+	* @param allCandidates   each location name may hits several documents, this is the collection for hitted documents  
 	* @throws IOException
 	* @throws RuntimeException
 	*/
@@ -150,8 +151,7 @@ public class GeoNameResolver {
 
 	
 	/**
-	* Build the gazetteer index line by line
-	* 
+	* Build the gazetteer index line by line 
 	* @param GAZETTEER_PATH   path of the gazetter file
 	* @throws IOException
 	* @throws RuntimeException
@@ -223,4 +223,7 @@ public class GeoNameResolver {
 		}
 		
 	}
+
+	
+
 }

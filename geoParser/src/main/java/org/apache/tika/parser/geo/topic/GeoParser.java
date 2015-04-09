@@ -52,14 +52,15 @@ public class GeoParser extends AbstractParser {
 	private static String gazetteerPath="";
 	private GeoParserConfig defaultconfig= new GeoParserConfig();
 	
+	@Override
 	public Set<MediaType> getSupportedTypes(ParseContext arg0) {
 		// TODO Auto-generated method stub
-		//return SUPPORTED_TYPES;
 		return null;
 	}
-	
+
+	@Override
 	public void parse(InputStream stream, ContentHandler handler, Metadata metadata,
-			ParseContext context) throws IOException, SAXException, TikaException {
+			ParseContext context) throws IOException, SAXException, TikaException{
 		
 		/*----------------configure this parser by ParseContext Object---------------------*/
 		GeoParserConfig localconfig= context.get(GeoParserConfig.class, defaultconfig);
@@ -77,8 +78,8 @@ public class GeoParser extends AbstractParser {
 		
 		/*----------------resolve geonames for each ner, store results in a hashmap---------------------*/
 		
-		HashMap<String, ArrayList<String>> resolvedGeonames= new HashMap<String, ArrayList<String>>();
-		resolver.searchGeoName(locationNameEntities, resolvedGeonames);
+		HashMap<String, ArrayList<String>> resolvedGeonames=
+					resolver.searchGeoName(locationNameEntities);
 		
 		/*----------------store locationNameEntities and their geonames in a geotag, each input has one geotag---------------------*/
 		GeoTag geotag= getGeoTag(resolvedGeonames, bestner);
@@ -152,7 +153,7 @@ public class GeoParser extends AbstractParser {
 	*
 	* @param stream  stream that passed from this.parse()
 	*/
-	public static ArrayList<String> getNER(InputStream stream) throws InvalidFormatException, IOException{
+	public ArrayList<String> getNER(InputStream stream) throws InvalidFormatException, IOException{
 		  
 		  InputStream modelIn = new FileInputStream(nerModelPath);
 		  TokenNameFinderModel model = new TokenNameFinderModel(modelIn);

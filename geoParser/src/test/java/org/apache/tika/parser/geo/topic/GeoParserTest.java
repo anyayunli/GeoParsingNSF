@@ -26,6 +26,7 @@ import static org.junit.Assert.*;
 import org.junit.Test;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 
 import org.apache.tika.exception.TikaException;
@@ -58,10 +59,11 @@ public class GeoParserTest {
         config.setGazetterPath(gazetteer);
         config.setNERModelPath(nerPath);
         context.set(GeoParserConfig.class, config);
-               
+        
+        InputStream s= new ByteArrayInputStream(text.getBytes("UTF-8"));   
         
         geoparser.parse(
-                new ByteArrayInputStream(text.getBytes("ISO-8859-1")),
+                s,
                 new BodyContentHandler(),
                 metadata,
                 context);
@@ -77,7 +79,7 @@ public class GeoParserTest {
         
 	}
 	
-	/*@Test
+	@Test
 	public void testNulls() throws UnsupportedEncodingException, IOException, SAXException, TikaException{
 		String text ="";
 	
@@ -89,7 +91,7 @@ public class GeoParserTest {
         context.set(GeoParserConfig.class, config);
                
         geoparser.parse(
-                new ByteArrayInputStream(text.getBytes("ISO-8859-1")),
+                new ByteArrayInputStream(text.getBytes("UTF-8")),
                 new BodyContentHandler(),
                 metadata,
                 context);
@@ -118,5 +120,5 @@ public class GeoParserTest {
         config.setNERModelPath("/:");              
         assertEquals(config.getGazetterPath(), "");
         assertEquals(config.getNERPath(), nerPath);
-	}*/
+	}
 }
