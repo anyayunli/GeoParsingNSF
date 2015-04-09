@@ -27,10 +27,12 @@ public class GeoParserConfig implements Serializable{
 	private static final long serialVersionUID = 1L;
 	private String gazetteerPath="";
 	private String nerModelPath="src/main/java/org/apache/tika/parser/geo/topic/model/en-ner-location.bin";
+	
 	public void setGazetterPath(String path){
+		
 		if(path==null) return;
 		File file= new File(path);
-		if(file.isDirectory() || !file.exists()){
+		if(file.isDirectory() || !file.exists()) {
 			return;
 		}
 		
@@ -38,7 +40,8 @@ public class GeoParserConfig implements Serializable{
 			
 	}
 	
-	public void setNERModelPath(String path){
+	public void setNERModelPath(String path)  {
+		
 		if(path==null) return;
 		File file= new File(path);
 		if(file.isDirectory() || !file.exists()){
@@ -47,10 +50,13 @@ public class GeoParserConfig implements Serializable{
 		nerModelPath=path;
 	}
 	
-	public String getNERPath(){
+	public String getNERPath() {
+		
 		return nerModelPath;
 	}
-	public String getGazetterPath(){
+	
+	public String getGazetterPath() {
+		
 		return gazetteerPath;
 	}
 }

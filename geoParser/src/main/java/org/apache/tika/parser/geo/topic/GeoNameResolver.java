@@ -22,6 +22,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.logging.*;
 
 import org.apache.lucene.analysis.Analyzer;
@@ -48,56 +50,106 @@ import org.apache.lucene.store.FSDirectory;
 import sun.util.logging.resources.logging;
 
 public class GeoNameResolver {
-	private static final String INDEXDIR_PATH="src/main/java/org/apache/tika/parser/geo/topic/model/indexDirectory";
-	private static final Double OUT_OF_BOUNDS=999999.0;
-	private static Analyzer analyzer=new StandardAnalyzer();
+	private static final String INDEXDIR_PATH=
+			"src/main/java/org/apache/tika/parser/geo/topic/model/indexDirectory";
+	private static final Double OUT_OF_BOUNDS = 999999.0;
+	private static Analyzer analyzer = new StandardAnalyzer();
 	private static IndexWriter indexWriter;
 	private static Directory indexDir;
-	public ScoreDoc[] hits;
+	private static int hitsPerPage=3;
 	
-	/*
+	/**
 	* Search corresponding GeoName for each location entity
+	 * @param resolvedGeonames 
 	* 
 	* @param querystr    it's the NER actually
 	* @throws IOException
 	* @throws RuntimeException
 	*/
-	public String[] searchGeoName(String querystr) throws IOException{
+	public void searchGeoName(ArrayList<String> locationNameEntities,
+				HashMap<String, ArrayList<String>> resolvedGeonames) throws IOException {
+		
+		if(locationNameEntities.size()==0 || locationNameEntities.get(0).length()==0)
+			return;
+		
 		Logger logger= Logger.getLogger(this.getClass().getName());
-		Query q = null;
-		try {
-			q = new QueryParser("name", analyzer).parse(querystr);
-		} catch (org.apache.lucene.queryparser.classic.ParseException e) {
-			e.printStackTrace();
-		}
-
-		if(!DirectoryReader.indexExists(indexDir)){
-			logger.log(Level.SEVERE, "No Lucene Index Dierctory Found, Invoke indexBuild() First !");
-			System.exit(1);
+		
+		if (!DirectoryReader.indexExists(indexDir)) {		
+			logger.log ( Level.SEVERE, "No Lucene Index Dierctory Found, Invoke indexBuild() First !");
+			System.exit(1);		
 		}
 		
 		IndexReader reader= DirectoryReader.open(indexDir);
 		
-		int hitsPerPage = 1;
+		
+		if(locationNameEntities.size() >= 20)
+			hitsPerPage = 1; // avoid heavy computation
 		IndexSearcher searcher = new IndexSearcher(reader);
 		TopScoreDocCollector collector = TopScoreDocCollector.create(hitsPerPage);
-		searcher.search(q, collector);
-		hits = collector.topDocs().scoreDocs;
-
-		String[] res= new String[hits.length];
-		for (int i = 0; i < hits.length; ++i) {
-			int docId = hits[i].doc;
-			Document d = searcher.doc(docId);
-			//logger.log(Level.INFO, "Resolved GeoName for Entity: "+  d.get("name")+"\t " + d.get("longitude")+"\t" + d.get("latitude"));
-			res[i]=d.get("name") + ","+d.get("longitude") + ","+d.get("latitude");			
+		Query q = null;
+		
+		HashMap<String, ArrayList<ArrayList<String>>> allCandidates= 
+					new HashMap<String, ArrayList<ArrayList<String>>>();
+		
+		for (String name: locationNameEntities) {
+			if (allCandidates.containsKey(name))
+				continue;
+			try {
+				q = new QueryParser("name", analyzer).parse(name);
+				searcher.search(q, collector);
+				ScoreDoc[] hits = collector.topDocs().scoreDocs;
+				ArrayList<ArrayList<String>> topHits= new ArrayList<ArrayList<String>>();
+				
+				for (int i = 0; i < hits.length; ++i) {
+					ArrayList<String> tmp = new ArrayList<String>();
+					int docId = hits[i].doc;
+					Document d;
+					try {
+						d = searcher.doc(docId);
+						tmp.add(d.get("name"));
+						tmp.add(d.get("longitude"));
+						tmp.add(d.get("latitude"));	
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+					topHits.add(tmp);
+				}
+				allCandidates.put(name, topHits);
+			} catch (org.apache.lucene.queryparser.classic.ParseException e) {
+				e.printStackTrace();
+				
+			}
 		}
-
-		// reader can only be closed when there is no need to access the documents any more.
+		
+		HashMap<String, ArrayList<String>> resolvedEntities= new HashMap<String, ArrayList<String>>();		
+		pickBestCandidates(resolvedEntities, allCandidates);
+		
 		reader.close();
-		return res;
+		
 	}
 	
-	/*
+	/**
+	* Select the best match for each location name extracted from a document, 
+	* choosing from among a list of lists of candidate matches.
+	 * @param resolvedEntities 
+	* 
+	* @param GAZETTEER_PATH   path of the gazetter file
+	* @throws IOException
+	* @throws RuntimeException
+	*/
+	
+	private void pickBestCandidates(HashMap<String, ArrayList<String>> resolvedEntities, 
+			HashMap<String, ArrayList<ArrayList<String>>> allCandidates) {
+		
+		for(String name: allCandidates.keySet()){
+			ArrayList<ArrayList<String>> cur= allCandidates.get(name);
+			resolvedEntities.put(name, cur.get(0));
+		}
+		
+	}
+
+	
+	/**
 	* Build the gazetteer index line by line
 	* 
 	* @param GAZETTEER_PATH   path of the gazetter file
@@ -132,7 +184,7 @@ public class GeoNameResolver {
 			indexWriter.close();
 		}
 	}
-	/*
+	/**
 	* Index gazetteer's one line data by built-in Lucene Index functions
 	* @param indexWriter Lucene indexWriter to be loaded
 	* @param line  a line from the gazetteer file

@@ -1,7 +1,7 @@
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
+ * this work for additional information regarding copyright owlocationNameEntitieship.
  * The ASF licenses this file to You under the Apache License, Version 2.0
  * (the "License"); you may not use this file except in compliance with
  * the License.  You may obtain a copy of the License at
@@ -20,6 +20,7 @@ package org.apache.tika.parser.geo.topic;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -61,33 +62,26 @@ public class GeoParser extends AbstractParser {
 			ParseContext context) throws IOException, SAXException, TikaException {
 		
 		/*----------------configure this parser by ParseContext Object---------------------*/
-		
-		Logger logger= Logger.getLogger(this.getClass().getName());
 		GeoParserConfig localconfig= context.get(GeoParserConfig.class, defaultconfig);
 		nerModelPath= localconfig.getNERPath();
 		gazetteerPath=localconfig.getGazetterPath();
-		
-		/*----------------get NERs for the input stream---------------------*/
-		String[] ners= getNER(stream);
+	
+		/*----------------get locationNameEntities for the input stream---------------------*/
+		ArrayList<String>  locationNameEntities= getNER(stream);
 		/*----------------get best NER for input stream---------------------*/
-		String bestner= getBestNER(ners);
+		String bestner= getBestNER(locationNameEntities);
 		
 		/*----------------build lucene search engine for the gazetteer file---------------------*/
 		GeoNameResolver resolver= new GeoNameResolver();
 		resolver.buildIndex(gazetteerPath);
 		
 		/*----------------resolve geonames for each ner, store results in a hashmap---------------------*/
-		HashMap<String, String[]> geonames= new HashMap<String, String[]>();
 		
-		for(int i=0; i<ners.length; ++i){
-			if(ners[i]==null || ners[i].length()==0 || ners[i].equals("\t")) continue;
-			if(geonames.containsKey(ners[i])) continue;
-			//logger.log(Level.INFO, "Entity Found in Texts: " +ners[i]);
-			geonames.put(ners[i], resolver.searchGeoName(ners[i]));
-		}	
+		HashMap<String, ArrayList<String>> resolvedGeonames= new HashMap<String, ArrayList<String>>();
+		resolver.searchGeoName(locationNameEntities, resolvedGeonames);
 		
-		/*----------------store ners and their geonames in a geotag, each input has one geotag---------------------*/
-		GeoTag geotag= getGeoTag(geonames, bestner);
+		/*----------------store locationNameEntities and their geonames in a geotag, each input has one geotag---------------------*/
+		GeoTag geotag= getGeoTag(resolvedGeonames, bestner);
 		
 		/* add resolved entities in metadata */
 		metadata.add("Geographic_NAME", geotag.Geographic_NAME);
@@ -105,17 +99,17 @@ public class GeoParser extends AbstractParser {
 	* Get the best location entity extracted from the input stream. 
 	* Simply return the most frequent entity, may not be the optimal solution, but works.
 	*
-	* @param ners   OpenNLP name finder's results, stored in array
+	* @param locationNameEntities   OpenNLP name finder's results, stored in array
 	*/
-	public String getBestNER(String[] ners){
-		if(ners.length==0)
+	public String getBestNER(ArrayList<String> locationNameEntities){
+		if(locationNameEntities.size()==0)
 			return "";
 		HashMap<String, Integer> tf= new HashMap<String, Integer> ();
-		for(int i=0; i< ners.length; ++i){
-			if(tf.containsKey(ners[i]))
-				tf.put(ners[i], tf.get(ners[i])+1);
+		for(int i=0; i< locationNameEntities.size(); ++i){
+			if(tf.containsKey(locationNameEntities.get(i)))
+				tf.put(locationNameEntities.get(i), tf.get(locationNameEntities.get(i))+1);
 			else
-				tf.put(ners[i], 1);
+				tf.put(locationNameEntities.get(i), 1);
 		}
 		
 		String res="";
@@ -134,21 +128,20 @@ public class GeoParser extends AbstractParser {
 	* @param resolvers  resolved entities
 	* @param bestNER  best name entity among all the extracted entities for the input stream
 	*/
-	public GeoTag getGeoTag(HashMap<String, String[]> resolvers, String bestNER){
+	public GeoTag getGeoTag(HashMap<String, ArrayList<String>> resolvedGeonames, String bestNER){
+		
 		GeoTag geotag= new GeoTag();
-		int bestneridx=0, bestgeoidx=0;
-		for(String key: resolvers.keySet()){
-			String[] currentNERresult= resolvers.get(key);
-			String[] bestGeo= currentNERresult[bestgeoidx].split(",");
+		for(String key: resolvedGeonames.keySet()){
+			ArrayList<String> cur= resolvedGeonames.get(key);
 			if(key.equals(bestNER)){
-				geotag.Geographic_NAME=bestGeo[0];
-				geotag.Geographic_LONGTITUDE=bestGeo[1];
-				geotag.Geographic_LATITUDE=bestGeo[2];						
+				geotag.Geographic_NAME=cur.get(0);
+				geotag.Geographic_LONGTITUDE=cur.get(1);
+				geotag.Geographic_LATITUDE=cur.get(2);						
 			}else{
 				GeoTag alter= new GeoTag();
-				alter.Geographic_NAME=bestGeo[0];
-				alter.Geographic_LONGTITUDE=bestGeo[1];
-				alter.Geographic_LATITUDE=bestGeo[2];
+				alter.Geographic_NAME=cur.get(0);
+				alter.Geographic_LONGTITUDE=cur.get(1);
+				alter.Geographic_LATITUDE=cur.get(2);
 				geotag.addAlternative(alter);
 			}
 		}
@@ -159,7 +152,7 @@ public class GeoParser extends AbstractParser {
 	*
 	* @param stream  stream that passed from this.parse()
 	*/
-	public static String[] getNER(InputStream stream) throws InvalidFormatException, IOException{
+	public static ArrayList<String> getNER(InputStream stream) throws InvalidFormatException, IOException{
 		  
 		  InputStream modelIn = new FileInputStream(nerModelPath);
 		  TokenNameFinderModel model = new TokenNameFinderModel(modelIn);
@@ -170,7 +163,8 @@ public class GeoParser extends AbstractParser {
 		  String spanNames=Arrays.toString(Span.spansToStrings(nameE, in));
 		  spanNames=spanNames.substring(1, spanNames.length()-1);	 
 		  modelIn.close();
-		  String [] res= spanNames.split(",");
+		  String [] tmp= spanNames.split(",");
+		  ArrayList<String> res= new ArrayList<String> (Arrays.asList(tmp));
 		  return res;
 	}
 }
