@@ -11,12 +11,14 @@ This project is a content-based geotagging solution, made of a variaty of NLP to
 2. Location names are extracted from the text using OpenNLP NER
 
 3. Provide two roles: 
-	* One location name choosed as the best matched location for the input 
+	* One location name choosed as the best matched location for the input (most frequent one)
 	* Other extracted locations are treated as alternates (ranking order)
 
 4. location extracted above, search the best GeoName object and return the resloved objects in ranking order
 
 ##How to Use
+*Cautions*: This program requires at least 1.2 GB disk space for building Lucene Index
+
 ```Java
 	function A(stream){
 		Metadata metadata = new Metadata();
@@ -46,14 +48,8 @@ For general use, we provide pre-trained NER models, which could be downloaded th
 
 You can also train a specifc model for a specific dataset, in this case, I suggest you follow the instructions [here](http://opennlp.apache.org/documentation/1.5.3/manual/opennlp.html#tools.namefind.training)
 
-Once you have you customized training model, suppose you put it under _/home/*/Documents/_, you need to set the path when using this parser like following:
-
-```java
-		GeoParserConfig config= new GeoParserConfig();
-        config.setNERPath("/home/*/Documents/customized_model");
-        context.set(GeoParserConfig.class, config);
-               
- ```
+Once you have you customized training model, put it in the following file path:
+>`src/main/java/org/apache/tika/parser/geo/topic/model/`
 
 ##### GeoName
 The [GeoName.org](http://download.geonames.org/export/dump/) Dataset contains over 10,000,000 geographical names corresponding to over 7,500,000 unique features. Beyond names of places in various languages, data stored include latitude, longitude, elevation, population, administrative subdivision and postal codes. All coordinates use the World Geodetic System 1984 (WGS84).
@@ -64,12 +60,8 @@ What we need here is to download the latest version of allCountries.zip file fro
 and unzip the GeoNames file:
 > `unzip allCountries.zip`
 
-and put  _allCountries.txt_ in a directory, suppose under _/home/*/Documents/_, and you need to set the path when using this parser like following:
- ```java
-		GeoParserConfig config= new GeoParserConfig();
-        config.setGazetterPath("/home/*/Documents/allCountries.txt");
-        context.set(GeoParserConfig.class, config);
- ```
+and put  _allCountries.txt_ in the following path:
+> `src/main/java/org/apache/tika/parser/geo/topic/model/`
 
 You can also replace allCountries.zip by any specific geographical names that in the same format. In this case, you need to make sure that:
 - The gazetteer file must be the same format as GeoName.org's allCountries.txt

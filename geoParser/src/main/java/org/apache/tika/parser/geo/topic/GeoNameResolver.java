@@ -37,7 +37,7 @@ import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
-import org.apache.lucene.queryparser.classic.QueryParser;
+import org.apache.lucene.queryparser.classic.MultiFieldQueryParser;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
@@ -45,9 +45,8 @@ import org.apache.lucene.search.TopScoreDocCollector;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 
-//import org.apache.lucene.store.*;
 
-import sun.util.logging.resources.logging;
+//import sun.util.logging.resources.logging;
 
 public class GeoNameResolver {
 	private static final String INDEXDIR_PATH=
@@ -95,7 +94,10 @@ public class GeoNameResolver {
 			if (allCandidates.containsKey(name))
 				continue;
 			try {
-				q = new QueryParser("name", analyzer).parse(name);
+				//q = new QueryParser("name", analyzer).parse(name);
+				q = new MultiFieldQueryParser(
+                        new String[] {"name", "alternatenames"},
+                        analyzer).parse(name);
 				TopScoreDocCollector collector = TopScoreDocCollector.create(hitsPerPage);
 				searcher.search(q, collector);
 				ScoreDoc[] hits = collector.topDocs().scoreDocs;
@@ -133,8 +135,8 @@ public class GeoNameResolver {
 	/**
 	* Select the best match for each location name extracted from a document, 
 	* choosing from among a list of lists of candidate matches.
-	* @param resolvedEntities  final result for the input stream
-	* @param allCandidates   each location name may hits several documents, this is the collection for hitted documents  
+	* @param resolvedEntities       final result for the input stream
+	* @param allCandidates          each location name may hits several documents, this is the collection for all hitted documents  
 	* @throws IOException
 	* @throws RuntimeException
 	*/
@@ -171,7 +173,7 @@ public class GeoNameResolver {
 				try {
 					count += 1;
 					if (count % 100000 == 0 ) {
-						logger.log(Level.INFO, "rowcount: " + count);
+						logger.log(Level.INFO, "Indexed Row Count: " + count);
 					}
 					addDoc(indexWriter, line);
                 
@@ -196,7 +198,8 @@ public class GeoNameResolver {
 		
         int ID = Integer.parseInt(tokens[0]);
         String name = tokens[1];
-        
+        String alternatenames= tokens[3];
+       
         Double latitude=-999999.0;
         try {
            latitude = Double.parseDouble(tokens[4]);
@@ -216,6 +219,7 @@ public class GeoNameResolver {
 		doc.add(new TextField("name", name, Field.Store.YES));
 		doc.add(new DoubleField("longitude", longitude, Field.Store.YES));
 		doc.add(new DoubleField("latitude", latitude, Field.Store.YES));
+		doc.add(new TextField("alternatenames", alternatenames, Field.Store.YES));
 		try {
 			indexWriter.addDocument(doc);
 		} catch (IOException e) {

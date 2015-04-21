@@ -22,12 +22,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
-import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
 
 import opennlp.tools.namefind.NameFinderME;
 import opennlp.tools.namefind.TokenNameFinderModel;
@@ -45,8 +46,9 @@ import org.xml.sax.SAXException;
 
 public class GeoParser extends AbstractParser {
 
-	//private static final MediaType MEDIA_TYPE = MediaType.application("geoTopic");
-	//private static final Set<MediaType> SUPPORTED_TYPES =Collections.singleton(MEDIA_TYPE);
+	private static final long serialVersionUID = -2241391757440215491L;
+	private static final MediaType MEDIA_TYPE = MediaType.application("geoTopic");
+	private static final Set<MediaType> SUPPORTED_TYPES =Collections.singleton(MEDIA_TYPE);
 
 	private static String nerModelPath="src/main/java/org/apache/tika/parser/geo/topic/model/en-ner-location.bin";
 	private static String gazetteerPath="";
@@ -55,7 +57,7 @@ public class GeoParser extends AbstractParser {
 	@Override
 	public Set<MediaType> getSupportedTypes(ParseContext arg0) {
 		// TODO Auto-generated method stub
-		return null;
+		return SUPPORTED_TYPES;
 	}
 
 	@Override
@@ -69,6 +71,7 @@ public class GeoParser extends AbstractParser {
 	
 		/*----------------get locationNameEntities for the input stream---------------------*/
 		ArrayList<String>  locationNameEntities= getNER(stream);
+		System.out.println(locationNameEntities);
 		/*----------------get best NER for input stream---------------------*/
 		String bestner= getBestNER(locationNameEntities);
 		
@@ -115,10 +118,23 @@ public class GeoParser extends AbstractParser {
 		
 		String res="";
 		int max=0;
-		for(String term: tf.keySet()){
-			if(tf.get(term) > max){
-				max= tf.get(term);
-				res= term;
+		List<Map.Entry<String,Integer>> list = new ArrayList<Map.Entry<String,Integer>>(tf.entrySet());
+		// random iterate the term-frequency list, so that when there is keys with same max value, we pick one randomly
+		Collections.shuffle(list); 
+		
+		Collections.sort(list, new Comparator<Map.Entry<String, Integer>>(){
+			
+		    public int compare(Map.Entry<String, Integer> o1,Map.Entry<String, Integer> o2){	
+		    	
+		           return o2.getValue().compareTo(o1.getValue()); // decending order 
+		           
+		    }
+		});
+		
+		for(Map.Entry<String,Integer> entry: list) { 		
+			if(entry.getValue() > max){
+				max= entry.getValue();
+				res= entry.getKey();
 			}				
 		}
 		return res;

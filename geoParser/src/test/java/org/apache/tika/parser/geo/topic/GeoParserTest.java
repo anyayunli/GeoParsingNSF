@@ -37,15 +37,14 @@ import org.apache.tika.sax.BodyContentHandler;
 import org.xml.sax.SAXException;
 
 public class GeoParserTest {
-
-	 final String gazetteer="src/main/java/org/apache/tika/parser/geo/topic/model/allCountries.txt";
-     final String nerPath="src/main/java/org/apache/tika/parser/geo/topic/model/en-ner-location.bin";
+	final String gazetteer="src/main/java/org/apache/tika/parser/geo/topic/model/allCountries.txt";
+    final String nerPath="src/main/java/org/apache/tika/parser/geo/topic/model/en-ner-location.bin";
      
 	private Parser geoparser = new GeoParser();
 	@Test
 	public void testFunctions() throws UnsupportedEncodingException, IOException, SAXException, TikaException{
 		String text =
-            "The millennial-scale cooling trend that followed the HTM coincides with the decrease in Northern Hemisphere " +
+            "The millennial-scale cooling trend that followed the HTM coincides with the decrease in Northern Hemisphere, Arctic Ocean, USA, USA " +
             "summer insolation driven by slow changes in Earth's orbit. Despite the nearly linear forcing, the transition from the HTM to "+
             "the Little Ice Age (1500-1900 AD) was neither gradual nor uniform. To understand how feedbacks and perturbations result in rapid changes, " +
             "a geographically distributed network of proxy climate records was examined to study the spatial and temporal patterns of change, and to " + 
