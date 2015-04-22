@@ -11,10 +11,10 @@ This project is a content-based geotagging solution, made of a variaty of NLP to
 2. Location names are extracted from the text using OpenNLP NER
 
 3. Provide two roles: 
-	* One location name choosed as the best matched location for the input (most frequent one)
+	* The most frequent location name choosed as the best matched location for the input text
 	* Other extracted locations are treated as alternates (ranking order)
 
-4. location extracted above, search the best GeoName object and return the resloved objects in ranking order
+4. location extracted above, search the best GeoName object and return the resloved objects with fields (name in gazetteer, longitude, latitude)
 
 ##How to Use
 *Cautions*: This program requires at least 1.2 GB disk space for building Lucene Index
@@ -46,7 +46,7 @@ This project is a content-based geotagging solution, made of a variaty of NLP to
 ##### NER
 For general use, we provide pre-trained NER models, which could be downloaded through [OpenNLP pre-trained models](http://opennlp.sourceforge.net/models-1.5/)
 
-Since OpenNLP's default name finder is not accurate, customized your own ner model is hight suggested. In this case, please follow the instructions [here](http://opennlp.apache.org/documentation/1.5.3/manual/opennlp.html#tools.namefind.training)
+Since OpenNLP's default name finder is not accurate, customized your own ner model is hight recommended. In this case, please follow the instructions [here](http://opennlp.apache.org/documentation/1.5.3/manual/opennlp.html#tools.namefind.training)
 
 Once you have you customized training model, put it in the following file path:
 >`src/main/java/org/apache/tika/parser/geo/topic/model/`
@@ -64,9 +64,6 @@ and unzip the GeoNames file:
 and put  _allCountries.txt_ in the following path:
 > `src/main/java/org/apache/tika/parser/geo/topic/model/`
 
-You can also replace allCountries.zip by any specific geographical names that in the same format. In this case, you need to make sure that:
-- The gazetteer file must be the same format as GeoName.org's allCountries.txt
-- The coordinates are WGS84 Specified
 
 ### License
  Licensed to the Apache Software Foundation (ASF) under one or more
