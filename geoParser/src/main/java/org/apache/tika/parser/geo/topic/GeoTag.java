@@ -39,13 +39,13 @@ public class GeoTag {
 	/*
 	 * Store resolved geoName entities in a GeoTag
 	 * 
-	 * @param resolvedGeonames
-	 * 			resolved entities
+	 * @param resolvedGeonames resolved entities
 	 * 
-	 * @param bestNER 
-	 * 			best name entity among all the extracted entities for the input stream
+	 * @param bestNER best name entity among all the extracted entities for the
+	 * input stream
 	 */
-	public void toGeoTag(HashMap<String, ArrayList<String>> resolvedGeonames, String bestNER) {
+	public void toGeoTag(HashMap<String, ArrayList<String>> resolvedGeonames,
+			String bestNER) {
 
 		for (String key : resolvedGeonames.keySet()) {
 			ArrayList<String> cur = resolvedGeonames.get(key);

@@ -54,7 +54,7 @@ public class GeoNameResolver {
 	private static Analyzer analyzer = new StandardAnalyzer();
 	private static IndexWriter indexWriter;
 	private static Directory indexDir;
-	private static int hitsPerPage = 5;
+	private static int hitsPerPage = 8;
 
 	/**
 	 * Search corresponding GeoName for each location entity
@@ -83,8 +83,8 @@ public class GeoNameResolver {
 
 		IndexReader reader = DirectoryReader.open(indexDir);
 
-		if (locationNameEntities.size() >= 20)
-			hitsPerPage = 1; // avoid heavy computation
+		if (locationNameEntities.size() >= 200)
+			hitsPerPage = 5; // avoid heavy computation
 		IndexSearcher searcher = new IndexSearcher(reader);
 
 		Query q = null;
@@ -105,18 +105,27 @@ public class GeoNameResolver {
 					ArrayList<ArrayList<String>> topHits = new ArrayList<ArrayList<String>>();
 
 					for (int i = 0; i < hits.length; ++i) {
-						ArrayList<String> tmp = new ArrayList<String>();
+						ArrayList<String> tmp1 = new ArrayList<String>();
+						ArrayList<String> tmp2 = new ArrayList<String>();
 						int docId = hits[i].doc;
 						Document d;
 						try {
 							d = searcher.doc(docId);
-							tmp.add(d.get("name"));
-							tmp.add(d.get("longitude"));
-							tmp.add(d.get("latitude"));
+							tmp1.add(d.get("name"));
+							tmp1.add(d.get("longitude"));
+							tmp1.add(d.get("latitude"));
+							if (!d.get("alternatenames").equalsIgnoreCase(
+									d.get("name"))) {
+								tmp2.add(d.get("alternatenames"));
+								tmp2.add(d.get("longitude"));
+								tmp2.add(d.get("latitude"));
+							}
 						} catch (IOException e) {
 							e.printStackTrace();
 						}
-						topHits.add(tmp);
+						topHits.add(tmp1);
+						if (tmp2.size() != 0)
+							topHits.add(tmp2);
 					}
 					allCandidates.put(name, topHits);
 				} catch (org.apache.lucene.queryparser.classic.ParseException e) {
@@ -165,6 +174,8 @@ public class GeoNameResolver {
 					minIndex = i;
 				}
 			}
+			if (minIndex == -1)
+				continue;
 			resolvedEntities.put(extractedName, cur.get(minIndex));
 		}
 	}

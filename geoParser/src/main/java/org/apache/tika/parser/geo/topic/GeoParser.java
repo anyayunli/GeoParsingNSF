@@ -17,7 +17,6 @@
 
 package org.apache.tika.parser.geo.topic;
 
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -44,7 +43,6 @@ public class GeoParser extends AbstractParser {
 	private static final Set<MediaType> SUPPORTED_TYPES = Collections
 			.singleton(MEDIA_TYPE);
 
-	
 	private static String gazetteerPath = "";
 	private GeoParserConfig defaultconfig = new GeoParserConfig();
 
@@ -66,25 +64,25 @@ public class GeoParser extends AbstractParser {
 		gazetteerPath = localconfig.getGazetterPath();
 
 		/*----------------get locationNameEntities and best nameEntity for the input stream---------------------*/
-		NameEntityExtractor extractor= new NameEntityExtractor(nerModelPath);
+		NameEntityExtractor extractor = new NameEntityExtractor(nerModelPath);
 		extractor.getAllNameEntitiesfromInput(stream);
 		extractor.getBestNameEntity();
 		ArrayList<String> locationNameEntities = extractor.locationNameEntities;
 		String bestner = extractor.bestNameEntity;
 
-		/*----------------build lucene search engine for the gazetteer file---------------------*/
+		/*----------------build lucene search engine for the gazetteer file, 
+		 *------------------------resolve geonames for each ner, store results in a hashmap---------------------*/
 		GeoNameResolver resolver = new GeoNameResolver();
 		resolver.buildIndex(gazetteerPath);
-
-		/*----------------resolve geonames for each ner, store results in a hashmap---------------------*/
-
-		HashMap<String, ArrayList<String>> resolvedGeonames = resolver.searchGeoName(locationNameEntities);
+		HashMap<String, ArrayList<String>> resolvedGeonames = resolver
+				.searchGeoName(locationNameEntities);
 
 		/*----------------store locationNameEntities and their geonames in a geotag, each input has one geotag---------------------*/
 		GeoTag geotag = new GeoTag();
 		geotag.toGeoTag(resolvedGeonames, bestner);
 
 		/* add resolved entities in metadata */
+
 		metadata.add("Geographic_NAME", geotag.Geographic_NAME);
 		metadata.add("Geographic_LONGITUDE", geotag.Geographic_LONGTITUDE);
 		metadata.add("Geographic_LATITUDE", geotag.Geographic_LATITUDE);

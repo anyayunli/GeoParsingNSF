@@ -22,20 +22,20 @@ public class NameEntityExtractor {
 	ArrayList<String> locationNameEntities;
 	String bestNameEntity;
 	private String nerModelPath = "src/main/java/org/apache/tika/parser/geo/topic/model/en-ner-location.bin";
-	
-	public NameEntityExtractor(String nerModelpath){
-		this.locationNameEntities= new ArrayList<String>();
-		this.bestNameEntity=null;
-		this.nerModelPath= nerModelpath;
-		
+
+	public NameEntityExtractor(String nerModelpath) {
+		this.locationNameEntities = new ArrayList<String>();
+		this.bestNameEntity = null;
+		this.nerModelPath = nerModelpath;
+
 	}
+
 	/*
 	 * Use OpenNLP to extract location names that's appearing in the steam.
 	 * OpenNLP's default Name Finder accuracy is not very good, please refer to
 	 * its documentation.
 	 * 
-	 * @param stream 
-	 * 			stream that passed from this.parse()
+	 * @param stream stream that passed from this.parse()
 	 */
 	public ArrayList<String> getNER(InputStream stream)
 			throws InvalidFormatException, IOException {
@@ -51,7 +51,7 @@ public class NameEntityExtractor {
 		spanNames = spanNames.substring(1, spanNames.length() - 1);
 		modelIn.close();
 		String[] tmp = spanNames.split(",");
-		
+
 		ArrayList<String> res = new ArrayList<String>();
 		for (String name : tmp) {
 			name = name.trim();
@@ -63,9 +63,9 @@ public class NameEntityExtractor {
 	 * OpenNLP's default Name Finder accuracy is not very good, please refer to
 	 * its documentation.
 	 * 
-	 * @param stream 
-	 * 			stream that passed from this.parse()
+	 * @param stream stream that passed from this.parse()
 	 */
+
 	public void getAllNameEntitiesfromInput(InputStream stream)
 			throws InvalidFormatException, IOException {
 
@@ -80,23 +80,21 @@ public class NameEntityExtractor {
 		spanNames = spanNames.substring(1, spanNames.length() - 1);
 		modelIn.close();
 		String[] tmp = spanNames.split(",");
-		
-		
+
 		for (String name : tmp) {
 			name = name.trim();
 			this.locationNameEntities.add(name);
 		}
-		
+
 	}
-	
-	
+
 	/*
 	 * Get the best location entity extracted from the input stream. Simply
 	 * return the most frequent entity, If there several highest frequent
 	 * entity, pick one randomly. May not be the optimal solution, but works.
 	 * 
-	 * @param locationNameEntities 
-	 * 			OpenNLP name finder's results, stored in ArrayList
+	 * @param locationNameEntities OpenNLP name finder's results, stored in
+	 * ArrayList
 	 */
 	public void getBestNameEntity() {
 		if (this.locationNameEntities.size() == 0)
@@ -110,7 +108,6 @@ public class NameEntityExtractor {
 				tf.put(this.locationNameEntities.get(i), 1);
 		}
 
-		
 		int max = 0;
 		List<Map.Entry<String, Integer>> list = new ArrayList<Map.Entry<String, Integer>>(
 				tf.entrySet());
@@ -119,8 +116,8 @@ public class NameEntityExtractor {
 			public int compare(Map.Entry<String, Integer> o1,
 					Map.Entry<String, Integer> o2) {
 
-				return o2.getValue().compareTo(o1.getValue()); // decending order
-																
+				return o2.getValue().compareTo(o1.getValue()); // decending
+																// order
 
 			}
 		});
@@ -131,7 +128,7 @@ public class NameEntityExtractor {
 				this.bestNameEntity = entry.getKey();
 			}
 		}
-		
+
 	}
 
 }
