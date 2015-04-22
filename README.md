@@ -46,10 +46,11 @@ This project is a content-based geotagging solution, made of a variaty of NLP to
 ##### NER
 For general use, we provide pre-trained NER models, which could be downloaded through [OpenNLP pre-trained models](http://opennlp.sourceforge.net/models-1.5/)
 
-You can also train a specifc model for a specific dataset, in this case, I suggest you follow the instructions [here](http://opennlp.apache.org/documentation/1.5.3/manual/opennlp.html#tools.namefind.training)
+Since OpenNLP's default name finder is not accurate, customized your own ner model is hight suggested. In this case, please follow the instructions [here](http://opennlp.apache.org/documentation/1.5.3/manual/opennlp.html#tools.namefind.training)
 
 Once you have you customized training model, put it in the following file path:
 >`src/main/java/org/apache/tika/parser/geo/topic/model/`
+
 
 ##### GeoName
 The [GeoName.org](http://download.geonames.org/export/dump/) Dataset contains over 10,000,000 geographical names corresponding to over 7,500,000 unique features. Beyond names of places in various languages, data stored include latitude, longitude, elevation, population, administrative subdivision and postal codes. All coordinates use the World Geodetic System 1984 (WGS84).

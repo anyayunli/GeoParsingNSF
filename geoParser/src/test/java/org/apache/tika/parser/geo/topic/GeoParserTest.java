@@ -115,4 +115,9 @@ public class GeoParserTest {
 		assertEquals(config.getGazetterPath(), "");
 		assertEquals(config.getNERPath(), nerPath);
 	}
+	
+	@Test
+	public void testAccuracy(){
+		
+	}
 }

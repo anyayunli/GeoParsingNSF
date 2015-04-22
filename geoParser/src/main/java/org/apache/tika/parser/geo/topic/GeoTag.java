@@ -18,6 +18,7 @@
 package org.apache.tika.parser.geo.topic;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class GeoTag {
 	String Geographic_NAME;
@@ -35,4 +36,30 @@ public class GeoTag {
 		alternatives.add(geotag);
 	}
 
+	/*
+	 * Store resolved geoName entities in a GeoTag
+	 * 
+	 * @param resolvedGeonames
+	 * 			resolved entities
+	 * 
+	 * @param bestNER 
+	 * 			best name entity among all the extracted entities for the input stream
+	 */
+	public void toGeoTag(HashMap<String, ArrayList<String>> resolvedGeonames, String bestNER) {
+
+		for (String key : resolvedGeonames.keySet()) {
+			ArrayList<String> cur = resolvedGeonames.get(key);
+			if (key.equals(bestNER)) {
+				this.Geographic_NAME = cur.get(0);
+				this.Geographic_LONGTITUDE = cur.get(1);
+				this.Geographic_LATITUDE = cur.get(2);
+			} else {
+				GeoTag alter = new GeoTag();
+				alter.Geographic_NAME = cur.get(0);
+				alter.Geographic_LONGTITUDE = cur.get(1);
+				alter.Geographic_LATITUDE = cur.get(2);
+				this.addAlternative(alter);
+			}
+		}
+	}
 }
