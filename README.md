@@ -12,7 +12,7 @@ This project is a content-based geotagging solution, made of a variaty of NLP to
 
 3. Provide two roles: 
 	* The most frequent location name choosed as the best matched location for the input text
-	* Other extracted locations are treated as alternates (ranking order)
+	* Other extracted locations are treated as alternates 
 
 4. location extracted above, search the best GeoName object and return the resloved objects with fields (name in gazetteer, longitude, latitude)
 
