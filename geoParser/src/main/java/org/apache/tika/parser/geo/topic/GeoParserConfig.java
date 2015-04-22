@@ -20,43 +20,43 @@ package org.apache.tika.parser.geo.topic;
 import java.io.File;
 import java.io.Serializable;
 
-public class GeoParserConfig implements Serializable{
-	/**
-	 * 
-	 */
+public class GeoParserConfig implements Serializable {
+	
 	private static final long serialVersionUID = 1L;
-	private String gazetteerPath="";
-	private String nerModelPath="src/main/java/org/apache/tika/parser/geo/topic/model/en-ner-location.bin";
-	
-	public void setGazetterPath(String path){
-		
-		if(path==null) return;
-		File file= new File(path);
-		if(file.isDirectory() || !file.exists()) {
+	private String gazetteerPath = "";
+	private String nerModelPath = "src/main/java/org/apache/tika/parser/geo/topic/model/en-ner-location.bin";
+
+	public void setGazetterPath(String path) {
+
+		if (path == null)
+			return;
+		File file = new File(path);
+		if (file.isDirectory() || !file.exists()) {
 			return;
 		}
-		
-		gazetteerPath=path;
-			
+
+		gazetteerPath = path;
+
 	}
-	
-	public void setNERModelPath(String path)  {
-		
-		if(path==null) return;
-		File file= new File(path);
-		if(file.isDirectory() || !file.exists()){
+
+	public void setNERModelPath(String path) {
+
+		if (path == null)
+			return;
+		File file = new File(path);
+		if (file.isDirectory() || !file.exists()) {
 			return;
 		}
-		nerModelPath=path;
+		nerModelPath = path;
 	}
-	
+
 	public String getNERPath() {
-		
+
 		return nerModelPath;
 	}
-	
+
 	public String getGazetterPath() {
-		
+
 		return gazetteerPath;
 	}
 }
