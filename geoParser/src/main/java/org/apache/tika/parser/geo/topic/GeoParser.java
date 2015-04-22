@@ -198,7 +198,7 @@ public class GeoParser extends AbstractParser {
 		spanNames = spanNames.substring(1, spanNames.length() - 1);
 		modelIn.close();
 		String[] tmp = spanNames.split(",");
-		System.out.println(Arrays.toString(tmp));
+		
 		ArrayList<String> res = new ArrayList<String>();
 		for (String name : tmp) {
 			name = name.trim();

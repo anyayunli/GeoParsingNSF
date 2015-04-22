@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.logging.*;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
@@ -53,7 +54,7 @@ public class GeoNameResolver {
 	private static Analyzer analyzer = new StandardAnalyzer();
 	private static IndexWriter indexWriter;
 	private static Directory indexDir;
-	private static int hitsPerPage = 3;
+	private static int hitsPerPage = 5;
 
 	/**
 	 * Search corresponding GeoName for each location entity
@@ -93,7 +94,6 @@ public class GeoNameResolver {
 		for (String name : locationNameEntities) {
 
 			if (!allCandidates.containsKey(name)) {
-				System.out.println(name);
 				try {
 					// q = new QueryParser("name", analyzer).parse(name);
 					q = new MultiFieldQueryParser(new String[] { "name",
@@ -135,7 +135,9 @@ public class GeoNameResolver {
 
 	/**
 	 * Select the best match for each location name extracted from a document,
-	 * choosing from among a list of lists of candidate matches.
+	 * choosing from among a list of lists of candidate matches. Filter uses the
+	 * following features: 1) edit distance between name and the resolved name,
+	 * choose smallest one 2) content (haven't implemented)
 	 * 
 	 * @param resolvedEntities
 	 *            final result for the input stream
@@ -149,12 +151,22 @@ public class GeoNameResolver {
 	private void pickBestCandidates(
 			HashMap<String, ArrayList<String>> resolvedEntities,
 			HashMap<String, ArrayList<ArrayList<String>>> allCandidates) {
-		System.out.println(allCandidates);
-		for (String name : allCandidates.keySet()) {
-			ArrayList<ArrayList<String>> cur = allCandidates.get(name);
-			resolvedEntities.put(name, cur.get(0));
-		}
 
+		for (String extractedName : allCandidates.keySet()) {
+			ArrayList<ArrayList<String>> cur = allCandidates.get(extractedName);
+			int minDistance = Integer.MAX_VALUE, minIndex = -1;
+			for (int i = 0; i < cur.size(); ++i) {
+				String resolvedName = cur.get(i).get(0);// get cur's ith
+														// resolved entry's name
+				int distance = StringUtils.getLevenshteinDistance(
+						extractedName, resolvedName);
+				if (distance < minDistance) {
+					minDistance = distance;
+					minIndex = i;
+				}
+			}
+			resolvedEntities.put(extractedName, cur.get(minIndex));
+		}
 	}
 
 	/**
