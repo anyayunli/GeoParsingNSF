@@ -11,8 +11,8 @@ This project is a content-based geotagging solution, made of a variaty of NLP to
 2. Location names are extracted from the text using OpenNLP NER
 
 3. Provide two roles: 
-	* The most frequent location name choosed as the best matched location for the input text
-	* Other extracted locations are treated as alternates (equal)
+	* The most frequent location name choosed as the best match for the input text
+	* Other extracted locations are treated as alternatives (equal)
 
 4. location extracted above, search the best GeoName object and return the resloved objects with fields (name in gazetteer, longitude, latitude)
 
@@ -40,6 +40,27 @@ This project is a content-based geotagging solution, made of a variaty of NLP to
        }
     }
 ```
+This parser generates useful geographical information to Tika's Metadata Object. 
+
+Fields for best matched location:
+```
+Geographic_NAME
+Geographic_LONGTITUDE
+Geographic_LATITUDE
+```
+Fields for alternatives:
+```
+Geographic_NAME1
+Geographic_LONGTITUDE1
+Geographic_LATITUDE1
+
+Geographic_NAME2
+Geographic_LONGTITUDE2
+Geographic_LATITUDE2
+
+...
+
+```
 
 ##Building the model
 
@@ -64,6 +85,13 @@ and unzip the GeoNames file:
 and put  _allCountries.txt_ in the following path:
 > `src/main/java/org/apache/tika/parser/geo/topic/model/`
 
+##Future Work
+1. The default model of OpenNLP's name finder provides decent accuracy, but not very good. For example, it can not extract country abbreviations, such as "USA", "UK". Genrally, we have two solutions:
+ * Train a better NER model. I believe some manually taging tasks is needed :)
+ * Use other tools, such as [StanfordNLP NER](http://nlp.stanford.edu/software/CRF-NER.shtml)
+2. Order of resolved entities. I chose the most frequent location name as best resolved entity but the alternatives are not ranked in order. Ranking can be done using content information. such as distance to the best entity, clustering and topic modeling. 
+
+If you have any questions, contact me: anyayunli@gmail.com
 
 ### License
  Licensed to the Apache Software Foundation (ASF) under one or more
