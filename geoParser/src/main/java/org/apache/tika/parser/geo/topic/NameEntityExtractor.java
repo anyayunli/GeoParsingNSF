@@ -19,46 +19,20 @@ import opennlp.tools.util.Span;
 import org.apache.commons.io.IOUtils;
 
 public class NameEntityExtractor {
+	private String nerModelPath = "src/main/java/org/apache/tika/parser/geo/topic/model/en-ner-location.bin";
 	ArrayList<String> locationNameEntities;
 	String bestNameEntity;
-	private String nerModelPath = "src/main/java/org/apache/tika/parser/geo/topic/model/en-ner-location.bin";
+	private HashMap<String, Integer> tf ;
 
 	public NameEntityExtractor(String nerModelpath) {
 		this.locationNameEntities = new ArrayList<String>();
 		this.bestNameEntity = null;
 		this.nerModelPath = nerModelpath;
+		tf= new HashMap<String, Integer>();
 
 	}
 
 	/*
-	 * Use OpenNLP to extract location names that's appearing in the steam.
-	 * OpenNLP's default Name Finder accuracy is not very good, please refer to
-	 * its documentation.
-	 * 
-	 * @param stream stream that passed from this.parse()
-	 */
-	public ArrayList<String> getNER(InputStream stream)
-			throws InvalidFormatException, IOException {
-
-		InputStream modelIn = new FileInputStream(nerModelPath);
-		TokenNameFinderModel model = new TokenNameFinderModel(modelIn);
-		NameFinderME nameFinder = new NameFinderME(model);
-		String[] in = IOUtils.toString(stream, "UTF-8").split(" ");
-
-		Span nameE[] = nameFinder.find(in);
-
-		String spanNames = Arrays.toString(Span.spansToStrings(nameE, in));
-		spanNames = spanNames.substring(1, spanNames.length() - 1);
-		modelIn.close();
-		String[] tmp = spanNames.split(",");
-
-		ArrayList<String> res = new ArrayList<String>();
-		for (String name : tmp) {
-			name = name.trim();
-			res.add(name);
-		}
-		return res;
-	}/*
 	 * Use OpenNLP to extract location names that's appearing in the steam.
 	 * OpenNLP's default Name Finder accuracy is not very good, please refer to
 	 * its documentation.
@@ -85,7 +59,8 @@ public class NameEntityExtractor {
 			name = name.trim();
 			this.locationNameEntities.add(name);
 		}
-
+		
+		
 	}
 
 	/*
@@ -99,7 +74,7 @@ public class NameEntityExtractor {
 	public void getBestNameEntity() {
 		if (this.locationNameEntities.size() == 0)
 			return;
-		HashMap<String, Integer> tf = new HashMap<String, Integer>();
+		
 		for (int i = 0; i < this.locationNameEntities.size(); ++i) {
 			if (tf.containsKey(this.locationNameEntities.get(i)))
 				tf.put(this.locationNameEntities.get(i),
@@ -107,28 +82,24 @@ public class NameEntityExtractor {
 			else
 				tf.put(this.locationNameEntities.get(i), 1);
 		}
-
 		int max = 0;
-		List<Map.Entry<String, Integer>> list = new ArrayList<Map.Entry<String, Integer>>(
-				tf.entrySet());
+		List<Map.Entry<String, Integer>> list = new ArrayList<Map.Entry<String, Integer>>(tf.entrySet());
 		Collections.shuffle(list);
 		Collections.sort(list, new Comparator<Map.Entry<String, Integer>>() {
-			public int compare(Map.Entry<String, Integer> o1,
-					Map.Entry<String, Integer> o2) {
+		public int compare(Map.Entry<String, Integer> o1,Map.Entry<String, Integer> o2) {
 
-				return o2.getValue().compareTo(o1.getValue()); // decending
-																// order
-
-			}
-		});
-
+			return o2.getValue().compareTo(o1.getValue()); // descending order
+	
+		}});
+		
+		this.locationNameEntities.clear();// update so that they are in descending order
 		for (Map.Entry<String, Integer> entry : list) {
+			this.locationNameEntities.add(entry.getKey());
 			if (entry.getValue() > max) {
 				max = entry.getValue();
 				this.bestNameEntity = entry.getKey();
 			}
 		}
-
 	}
 
 }
